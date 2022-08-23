@@ -74,12 +74,21 @@ Fixpoint eval1 t : result Term string :=
     | TmSucc _ t1' =>
       if isnumericalval t1' then return? t1' else
       let? t1'' := eval1 t1' in
-      return? t1''
-      (* match t1'' with
-      | return? t1'' => return? (TmPred fi t1'')
-      | _ => Error "No Case"%string
-      end *)
+      return? (TmPred fi t1'')
     | _ => Error "No Case"%string
+    end
+  | TmIsZero fi t1 =>
+    match t1 with
+    | TmZero _ => return? TmTrue dummyInfo
+    | TmSucc _ nv1 => 
+      if isnumericalval nv1 then return? TmFalse dummyInfo else
+      Error "No Case"%string
+    | _ => 
+      let? t1' := eval1 t1 in
+      return? TmIsZero fi t1'
     end
   | _ => Error "No Case"%string
   end.
+
+Fixpoint eval (t : Term) : result Term string :=
+    let? t' := eval1 t in eval t'.
